@@ -58,20 +58,20 @@ class Practicar
   private
 
   def remove_accents(word)
-    ans = word
+    ans = word.clone
     {
-      "à" => "a",
-      "ć" => "c",
-      "ê" => "e",
-      "í" => "i",
-      "ń" => "n",
-      "ñ" => "n",
-      "ó" => "o",
-      "ś" => "s",
-      "ú" => "u",
-      "ź" => "z"
+      "á" => "a'",
+      "ć" => "c'",
+      "é" => "e'",
+      "í" => "i'",
+      "ń" => "n'",
+      "ñ" => "n~",
+      "ó" => "o'",
+      "ś" => "s'",
+      "ú" => "u'",
+      "ź" => "z'"
     }.each do |k, v|
-      ans.gsub!(k,v)
+      ans.gsub!(k, v)
     end
 
     ans
@@ -93,9 +93,13 @@ class Practicar
   end
 
   def goodbye
-    puts "=" * 100
-    puts "Questions taken: #{ @stats["step"] - @initial_step }"
-    puts "Points made: #{@stats["points"] - @initial_points  }"
+    points_made = @stats["points"] - @initial_points
+    questions_taken = @stats["step"] - @initial_step
+    puts "\n\n"
+    puts "Questions taken: #{ questions_taken }"
+    puts "✱ " * questions_taken
+    puts "Points made: #{points_made }"
+    puts "☆ " * points_made
     puts "\nGoodbye.\n"
     exit 0
   end
