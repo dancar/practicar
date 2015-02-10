@@ -57,7 +57,7 @@ class Practicar
 
   private
 
-  def remove_accents(word)
+  def convert_accents(word)
     ans = word.clone
     {
       "á" => "a'",
@@ -69,6 +69,7 @@ class Practicar
       "ó" => "o'",
       "ś" => "s'",
       "ú" => "u'",
+      "ü" => "u^",
       "ź" => "z'"
     }.each do |k, v|
       ans.gsub!(k, v)
@@ -77,17 +78,43 @@ class Practicar
     ans
   end
 
+  def remove_accents(word)
+    ans = word.clone
+    {
+      "a" => ["á", "a'"],
+      "c" => ["ć", "c'"],
+      "e" => ["é", "e'"],
+      "i" => ["í", "i'"],
+      "n" => ["ń", "n'", "ñ", "n~"],
+      "o" => ["ó", "o'"],
+      "s" => ["ś", "s'"],
+      "u" => ["ú", "u'", "ü", "u^"],
+      "z" => ["ź", "z'"]
+    }.each do |target, sources|
+        sources.each do |source|
+          ans.gsub!(source, target)
+        end
+    end
+    ans
+  end
+
   def ask_current_question()
     puts %([#{@stats["points"]}] Question #{@stats["step"]}: "#{@current_question}":)
     user_input = gets().chomp rescue nil
     goodbye() if user_input.nil?
 
-    is_correct = user_input == remove_accents(@current_answer)
-    if is_correct
+    if user_input == convert_accents(@current_answer) # Perfect answer
+      is_correct = true
       puts "CORRECT!"
-    else
+
+    elsif remove_accents(user_input) == remove_accents(@current_answer) # Imperfect answer
+      is_correct = true
+      puts "Almost correct: \"#{@current_answer}\""
+    else # Wrong answer
+      is_correct = false
       puts "Wrong!\t The correct answer is: \t '#{@current_answer}'"
     end
+
     spanish_say(@current_answer)
     is_correct
   end
