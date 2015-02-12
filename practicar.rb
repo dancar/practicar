@@ -15,11 +15,11 @@ class Practicar
     @stats = read_json_file(STATS_FILE) rescue DEFAULT_STATS
     available_questions = read_json_file(QUESTIONS_FILE)
     available_questions.each do |question, answer|
-      @stats["question_stats"][question] ||= {
-        "last_correct_step" => 0,
-        "last_wrong_step" => 0,
-      }
-      @stats["question_stats"][question]["answer"] = answer
+      question_stats = (@stats["question_stats"][question] ||= {})
+      question_stats["answer"] = answer
+      question_stats["last_correct_step"] ||= 0
+      question_stats["last_wrong_step"] ||= 0
+      question_stats["question_points"] ||= 0
     end
 
     # Remove inexistent questions:
@@ -37,25 +37,53 @@ class Practicar
     while not @exit_signal do
       input = nil
       next_question!()
-      is_correct = ask_current_question()
       question_stats = @stats["question_stats"][@current_question]
+
+      effective_max_threshold = @max_threshold - @min_threshold
+      effective_threshold = @current_threshold - @min_threshold
+      effective_question_cutoff = calc_question_cutoff(question_stats) - @min_threshold
+      success_chance = 100 * (effective_question_cutoff.to_f / effective_max_threshold)
+
+      puts "━" * 78
+      print_question_stat "Step",                       @stats["step"]
+      print_question_stat "points",                     @stats["points"]
+      print_question_stat "Thresholds",                 "#{@min_threshold}...[#{calc_question_cutoff(question_stats)}]...|#{@current_threshold}...#{@max_threshold}"
+      print_question_stat "Effective Threshold",        "0...[#{effective_question_cutoff}]...|#{effective_threshold}...#{effective_max_threshold}"
+      print_question_stat "Question last correct step", question_stats["last_correct_step"], @stats["step"] - question_stats["last_correct_step"]
+      print_question_stat "Question last wrong step",   question_stats["last_wrong_step"], @stats["step"] - question_stats["last_wrong_step"]
+      print_question_stat "Question points",            question_stats["question_points"]
+      print_question_stat "Success chance",             sprintf("%.2f%%", success_chance)
+      puts
+
+      is_correct = ask_current_question()
       if is_correct
         @stats["points"] += 1
         question_stats["last_correct_step"] = @stats["step"]
         question_stats["last_correct_time"] = Time.new
+        question_stats["question_points"] += 1
       else
+        question_stats["question_points"] -= 1
         question_stats["last_wrong_step"] = @stats["step"]
         # Repeat the same question until answered correctly:
         until is_correct
           is_correct = ask_current_question()
         end
       end
+      puts
+      print_question_stat "Question new cutoff", calc_question_cutoff(question_stats) - @min_threshold
+      print_question_stat "Question new points", question_stats["question_points"]
       @stats["step"] += 1
       save_stats()
     end
   end
 
   private
+
+  def print_question_stat(name, value, effective_value = nil)
+    str = sprintf("▹ %30s: %s", name, value.to_s)
+    str << " (#{effective_value})" if effective_value
+    puts str
+  end
 
   def convert_accents(word)
     ans = word.clone
@@ -99,11 +127,11 @@ class Practicar
   end
 
   def ask_current_question()
-    puts %([#{@stats["points"]}] Question #{@stats["step"]}: "#{@current_question}":)
+    puts %("#{@current_question}":)
     user_input = gets().chomp rescue nil
     goodbye() if user_input.nil?
-
     if user_input == convert_accents(@current_answer) # Perfect answer
+
       is_correct = true
       puts "CORRECT!"
 
@@ -122,11 +150,15 @@ class Practicar
   def goodbye
     points_made = @stats["points"] - @initial_points
     questions_taken = @stats["step"] - @initial_step
-    puts "\n\n"
-    puts "Questions taken: #{ questions_taken }"
+    puts "\n"
+
+    print "Questions taken: #{ questions_taken } "
     puts "✱ " * questions_taken
-    puts "Points made: #{points_made }"
+
+    print "Points made: #{points_made} "
     puts "☆ " * points_made
+
+    spanish_say "la puntuación: #{points_made}"
     puts "\nGoodbye.\n"
     exit 0
   end
@@ -137,14 +169,33 @@ class Practicar
 
   def next_question!()
     current_step = @stats["step"]
-    oldest_question_step = @stats["question_stats"].values.map {|q| q["last_correct_step"]}.min || 0
-    threshold = Random.rand(oldest_question_step..current_step)
-    possible_questions = @stats["question_stats"].select { |question, stats|
-      stats["last_correct_step"] <= threshold
+    possible_thresholds = @stats["question_stats"].values.map {|q| calc_question_cutoff(q)}
+
+    @min_threshold = possible_thresholds.min
+    @max_threshold = possible_thresholds.max
+    @current_threshold = Random.rand(@min_threshold..@max_threshold)
+
+    possible_questions = @stats["question_stats"].select { |question, question_stats|
+      calc_question_cutoff(question_stats) <= @current_threshold
     }
 
     @current_question = possible_questions.keys.sample
     @current_answer = possible_questions[@current_question]["answer"]
+  end
+
+  def calc_question_cutoff(question_stats)
+    # A low cutoff means higher chances of selection
+
+    # Increase cutoff if the question hasn't been answered in a long time:
+    cutoff = question_stats["last_correct_step"]
+
+    # Decrease cutoff if the question has been answered correctly after not being asked for a long time:
+    cutoff += question_stats["last_correct_step"] - question_stats["last_wrong_step"]
+
+    # Decrease cutoff if the question has been answered correctly many times:
+    cutoff += question_stats["question_points"]
+
+    cutoff
   end
 
   def save_stats()
