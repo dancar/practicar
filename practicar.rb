@@ -3,17 +3,19 @@
 
 require 'json'
 class Practicar
-  STATS_FILE = "stats.json"
-  QUESTIONS_FILE = "questions.json"
+  DEFAULT_QUESTIONS_FILE = "questions.json"
+  ANSWER_PLACEHOLDER = /\(\?\)/
   DEFAULT_STATS = {
     "points" => 0,
     "step" => 0,
     "question_stats" => {}
   }
 
-  def initialize
-    @stats = read_json_file(STATS_FILE) rescue DEFAULT_STATS
-    available_questions = read_json_file(QUESTIONS_FILE)
+  def initialize(questions_file)
+    questions_file ||= DEFAULT_QUESTIONS_FILE
+    @stats_file = stats_file_for_questions_file(questions_file)
+    @stats = read_json_file(@stats_file) rescue DEFAULT_STATS
+    available_questions = read_json_file(questions_file)
     available_questions.each do |question, answer|
       question_stats = (@stats["question_stats"][question] ||= {})
       question_stats["answer"] = answer
@@ -34,7 +36,7 @@ class Practicar
   end
 
   def run
-    while not @exit_signal do
+    while true do
       input = nil
       next_question!()
       question_stats = @stats["question_stats"][@current_question]
@@ -80,6 +82,7 @@ class Practicar
   private
 
   def print_question_stat(name, value, effective_value = nil)
+    return unless ENV["SHOW_STATS"]
     str = sprintf("▹ %30s: %s", name, value.to_s)
     str << " (#{effective_value})" if effective_value
     puts str
@@ -128,8 +131,14 @@ class Practicar
 
   def ask_current_question()
     puts %("#{@current_question}":)
-    user_input = gets().chomp rescue nil
+    begin
+      user_input = STDIN.gets()
+
+    rescue => e
+      raise e
+    end
     goodbye() if user_input.nil?
+    user_input.chomp!.downcase!
     if user_input == convert_accents(@current_answer) # Perfect answer
 
       is_correct = true
@@ -143,7 +152,13 @@ class Practicar
       puts "Wrong!\t The correct answer is: \t '#{@current_answer}'"
     end
 
-    spanish_say(@current_answer)
+    full_answer = @current_answer
+    if (@current_question).match(ANSWER_PLACEHOLDER)
+      full_answer = @current_question.gsub(ANSWER_PLACEHOLDER, @current_answer)
+      full_answer.gsub!(/\([^)]+\)/,"")
+    end
+
+    spanish_say(full_answer)
     is_correct
   end
 
@@ -180,7 +195,7 @@ class Practicar
     }
 
     @current_question = possible_questions.keys.sample
-    @current_answer = possible_questions[@current_question]["answer"]
+    @current_answer = possible_questions[@current_question]["answer"].downcase
   end
 
   def calc_question_cutoff(question_stats)
@@ -199,7 +214,7 @@ class Practicar
   end
 
   def save_stats()
-    File.write(file_path(STATS_FILE), @stats.to_json)
+    File.write(file_path(@stats_file), @stats.to_json)
   end
 
   def read_json_file(name)
@@ -209,6 +224,10 @@ class Practicar
   def file_path(name)
     File.expand_path(File.join("..", name), __FILE__)
   end
+
+  def stats_file_for_questions_file(questions_file_name)
+    questions_file_name + ".stats"
+  end
 end
 
-Practicar.new.run
+Practicar.new(ARGV.first).run
