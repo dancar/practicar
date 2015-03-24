@@ -4,6 +4,7 @@
 require 'json'
 class Practicar
   DEFAULT_QUESTIONS_FILE = "questions.json"
+  AVAILABLE_MODES = [:smart, :random]
   ANSWER_PLACEHOLDER = /\(\?\)/
   DEFAULT_STATS = {
     "points" => 0,
@@ -11,8 +12,10 @@ class Practicar
     "question_stats" => {}
   }
 
-  def initialize(questions_file)
-    questions_file ||= DEFAULT_QUESTIONS_FILE
+  def initialize(questions_file = DEFAULT_QUESTIONS_FILE, mode_name = "smart")
+    @mode = mode_name.downcase.to_sym
+    raise "Invalid mode: #{mode_name}" unless AVAILABLE_MODES.include?(@mode)
+
     @stats_file = stats_file_for_questions_file(questions_file)
     @stats = read_json_file(@stats_file) rescue DEFAULT_STATS
     available_questions = read_json_file(questions_file)
@@ -41,21 +44,21 @@ class Practicar
       next_question!()
       question_stats = @stats["question_stats"][@current_question]
 
-      effective_max_threshold = @max_threshold - @min_threshold
-      effective_threshold = @current_threshold - @min_threshold
-      effective_question_cutoff = calc_question_cutoff(question_stats) - @min_threshold
-      success_chance = 100 * (effective_question_cutoff.to_f / effective_max_threshold)
+      # effective_max_threshold = @max_threshold - @min_threshold
+      # effective_threshold = @current_threshold - @min_threshold
+      # effective_question_cutoff = calc_question_cutoff(question_stats) - @min_threshold
+      # success_chance = 100 * (effective_question_cutoff.to_f / effective_max_threshold)
 
-      puts "━" * 78
-      print_question_stat "Step",                       @stats["step"]
-      print_question_stat "points",                     @stats["points"]
-      print_question_stat "Thresholds",                 "#{@min_threshold}...[#{calc_question_cutoff(question_stats)}]...|#{@current_threshold}...#{@max_threshold}"
-      print_question_stat "Effective Threshold",        "0...[#{effective_question_cutoff}]...|#{effective_threshold}...#{effective_max_threshold}"
-      print_question_stat "Question last correct step", question_stats["last_correct_step"], @stats["step"] - question_stats["last_correct_step"]
-      print_question_stat "Question last wrong step",   question_stats["last_wrong_step"], @stats["step"] - question_stats["last_wrong_step"]
-      print_question_stat "Question points",            question_stats["question_points"]
-      print_question_stat "Success chance",             sprintf("%.2f%%", success_chance)
-      puts
+      # puts "━" * 78
+      # print_question_stat "Step",                       @stats["step"]
+      # print_question_stat "points",                     @stats["points"]
+      # print_question_stat "Thresholds",                 "#{@min_threshold}...[#{calc_question_cutoff(question_stats)}]...|#{@current_threshold}...#{@max_threshold}"
+      # print_question_stat "Effective Threshold",        "0...[#{effective_question_cutoff}]...|#{effective_threshold}...#{effective_max_threshold}"
+      # print_question_stat "Question last correct step", question_stats["last_correct_step"], @stats["step"] - question_stats["last_correct_step"]
+      # print_question_stat "Question last wrong step",   question_stats["last_wrong_step"], @stats["step"] - question_stats["last_wrong_step"]
+      # print_question_stat "Question points",            question_stats["question_points"]
+      # print_question_stat "Success chance",             sprintf("%.2f%%", success_chance)
+      # puts
 
       is_correct = ask_current_question()
       if is_correct
@@ -72,8 +75,8 @@ class Practicar
         end
       end
       puts
-      print_question_stat "Question new cutoff", calc_question_cutoff(question_stats) - @min_threshold
-      print_question_stat "Question new points", question_stats["question_points"]
+      # print_question_stat "Question new cutoff", calc_question_cutoff(question_stats) - @min_threshold
+      # print_question_stat "Question new points", question_stats["question_points"]
       @stats["step"] += 1
       save_stats()
     end
@@ -183,6 +186,16 @@ class Practicar
   end
 
   def next_question!()
+    return smart_next_question! if @mode == :smart
+    return random_next_question!() if @mode == :random
+  end
+
+  def random_next_question!()
+    @current_question = @stats["question_stats"].keys.sample
+    @current_answer = @stats["question_stats"][@current_question]["answer"]
+  end
+
+  def smart_next_question!()
     current_step = @stats["step"]
     possible_thresholds = @stats["question_stats"].values.map {|q| calc_question_cutoff(q)}
 
@@ -230,4 +243,4 @@ class Practicar
   end
 end
 
-Practicar.new(ARGV.first).run
+Practicar.new(*ARGV).run
