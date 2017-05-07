@@ -1,13 +1,16 @@
 {
-  "yo (?)"       : "estoy",
-  "tú (?)"       : "estás",
-  "él (?)"       : "está",
-  "ella (?)"     : "está",
-  "Usted (?)"    : "está",
-  "nosotros (?)" : "estamos",
-  "vosotros (?)" : "estáis",
-  "ellos (?)"    : "están",
-  "ellas (?)"    : "están",
-  "Uds. (?)"     : "están",
-  "Ustedes (?)"  : "están"
+  "language": "es",
+  "questions": {
+    "yo (?)"       : "estoy",
+    "tú (?)"       : "estás",
+    "él (?)"       : "está",
+    "ella (?)"     : "está",
+    "Usted (?)"    : "está",
+    "nosotros (?)" : "estamos",
+    "vosotros (?)" : "estáis",
+    "ellos (?)"    : "están",
+    "ellas (?)"    : "están",
+    "Uds. (?)"     : "están",
+    "Ustedes (?)"  : "están"
+  }
 }

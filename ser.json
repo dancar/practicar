@@ -1,14 +1,17 @@
 {
-"yo (?)"       : "soy",
-"tú (?)"       : "eres",
-"él (?)"       : "es",
-"ella (?)"     : "es",
-"Ud (?)."      : "es",
-"Usted (?)"    : "es",
-"nosotros (?)" : "somos",
-"vosotros (?)" : "sois",
-"ellos (?)."   : "son",
-"ellas (?)."   : "son",
-"Uds (?)."     : "son",
-"ustedes (?)"  : "son"
+  "language": "es",
+  "questions": {
+    "yo (?)"       : "soy",
+    "tú (?)"       : "eres",
+    "él (?)"       : "es",
+    "ella (?)"     : "es",
+    "Ud (?)."      : "es",
+    "Usted (?)"    : "es",
+    "nosotros (?)" : "somos",
+    "vosotros (?)" : "sois",
+    "ellos (?)."   : "son",
+    "ellas (?)."   : "son",
+    "Uds (?)."     : "son",
+    "ustedes (?)"  : "son"
+  }
 }

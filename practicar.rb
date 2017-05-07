@@ -5,20 +5,35 @@ require 'json'
 class Practicar
   DEFAULT_QUESTIONS_FILE = "questions.json"
   AVAILABLE_MODES = [:smart, :random]
-  ANSWER_PLACEHOLDER = /\(\?\)/
+  ANSWER_PLACEHOLDER = /\(\?\)/ # answers for questions containing "(?)" (without quotes) will be voiced as the questions with (?) replaced by the answer
   DEFAULT_STATS = {
     "points" => 0,
     "step" => 0,
     "question_stats" => {}
   }
 
-  def initialize(questions_file = DEFAULT_QUESTIONS_FILE, mode_name = "smart")
-    @mode = mode_name.downcase.to_sym
-    raise "Invalid mode: #{mode_name}" unless AVAILABLE_MODES.include?(@mode)
+  STRINGS = {
+    "es"=> {
+      points: "la puntuación: %s"
+    },
+
+    "de" => {
+      points: "Die Punktzahl: %s"
+    }
+
+  }
+
+  def initialize(questions_file = DEFAULT_QUESTIONS_FILE, mode = :smart)
+    @mode = mode.downcase.to_sym
+    raise "Invalid mode: #{@mode}" unless AVAILABLE_MODES.include?(@mode)
 
     @stats_file = stats_file_for_questions_file(questions_file)
     @stats = read_json_file(@stats_file) rescue DEFAULT_STATS
-    available_questions = read_json_file(questions_file)
+    question_file_data = read_json_file(questions_file)
+    @language = question_file_data["language"]
+    available_questions = question_file_data["questions"]
+
+    # init question stats:
     available_questions.each do |question, answer|
       question_stats = (@stats["question_stats"][question] ||= {})
       question_stats["answer"] = answer
@@ -34,7 +49,7 @@ class Practicar
 
     @initial_step = @stats["step"]
     @initial_points = @stats["points"]
-    @available_spanish_voices = `say -v ?| grep es_`.lines.map{|l| l.split(" ").first}
+    @available_voices = %x(say -v ?| grep #{@language}_).lines.map{|l| l.split(" ").first}
 
   end
 
@@ -43,23 +58,6 @@ class Practicar
       input = nil
       next_question!()
       question_stats = @stats["question_stats"][@current_question]
-
-      # effective_max_threshold = @max_threshold - @min_threshold
-      # effective_threshold = @current_threshold - @min_threshold
-      # effective_question_cutoff = calc_question_cutoff(question_stats) - @min_threshold
-      # success_chance = 100 * (effective_question_cutoff.to_f / effective_max_threshold)
-
-      # puts "━" * 78
-      # print_question_stat "Step",                       @stats["step"]
-      # print_question_stat "points",                     @stats["points"]
-      # print_question_stat "Thresholds",                 "#{@min_threshold}...[#{calc_question_cutoff(question_stats)}]...|#{@current_threshold}...#{@max_threshold}"
-      # print_question_stat "Effective Threshold",        "0...[#{effective_question_cutoff}]...|#{effective_threshold}...#{effective_max_threshold}"
-      # print_question_stat "Question last correct step", question_stats["last_correct_step"], @stats["step"] - question_stats["last_correct_step"]
-      # print_question_stat "Question last wrong step",   question_stats["last_wrong_step"], @stats["step"] - question_stats["last_wrong_step"]
-      # print_question_stat "Question points",            question_stats["question_points"]
-      # print_question_stat "Success chance",             sprintf("%.2f%%", success_chance)
-      # puts
-
       is_correct = ask_current_question()
       if is_correct
         @stats["points"] += 1
@@ -133,14 +131,9 @@ class Practicar
   end
 
   def ask_current_question()
-    puts %("#{@current_question}":)
-    begin
-      user_input = STDIN.gets()
-
-    rescue => e
-      raise e
-    end
-    goodbye() if user_input.nil?
+    puts @current_question + ":"
+    user_input = STDIN.gets()
+    goodbye() if user_input.nil? # Exiting by entering CTRL + D
     user_input.chomp!.downcase!
     if user_input == convert_accents(@current_answer) # Perfect answer
 
@@ -155,13 +148,15 @@ class Practicar
       puts "Wrong!\t The correct answer is: \t '#{@current_answer}'"
     end
 
+    # if the question contains ANSWER_PLACEHOLDER, we want to say the question itself with the placeholder replaced by the answer
+    # i.e the question "yesterday they (?) walked" with the answer "have" would be voiced: "yesterday they have walked" instead of just "have"
     full_answer = @current_answer
-    if (@current_question).match(ANSWER_PLACEHOLDER)
+    if @current_question.match(ANSWER_PLACEHOLDER)
       full_answer = @current_question.gsub(ANSWER_PLACEHOLDER, @current_answer)
       full_answer.gsub!(/\([^)]+\)/,"")
     end
 
-    spanish_say(full_answer)
+    say(full_answer)
     is_correct
   end
 
@@ -176,13 +171,13 @@ class Practicar
     print "Points made: #{points_made} "
     puts "☆ " * points_made
 
-    spanish_say "la puntuación: #{points_made}"
+    say STRINGS[@language][:points] % points_made
     puts "\nGoodbye.\n"
     exit 0
   end
 
-  def spanish_say(word)
-    system %(say -v #{@available_spanish_voices.sample} "#{word}" &)
+  def say(word)
+    system %(say -v #{@available_voices.sample} "#{word}" &)
   end
 
   def next_question!()

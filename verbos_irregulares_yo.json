@@ -1,18 +1,21 @@
 {
-  "I see, you see": "yo veo, tu ves",
-  "I know, she knows": "yo sé, ella sabe",
-  "I give, we give": "yo doy, nosotros damos",
-  "I do, you do": "yo hago, tu haces",
-  "I bring, you bring": "yo traigo, tu traes",
-  "I fall, you fall": "yo caigo, tu caes",
-  "I put, you put": "yo pongo, tu pones",
-  "I go out, you go out": "yo salgo, tu sales",
-  "I see, we see": "yo veo, nosotros vemos",
-  "I know, we know": "yo sé, nosotros sabemos",
-  "I give, we give": "yo doy, nosotros damos",
-  "I do, we do": "yo hago, nosotros hacemos",
-  "I bring, we bring": "yo traigo, nosotros traemos",
-  "I fall, we fall": "yo caigo, nosotros caemos",
-  "I put, we put": "yo pongo, nosotros ponemos",
-  "I go out, we go out": "yo salgo, nosotros salimos"
+  "language": "es",
+  "questions": {
+    "I see, you see": "yo veo, tu ves",
+    "I know, she knows": "yo sé, ella sabe",
+    "I give, we give": "yo doy, nosotros damos",
+    "I do, you do": "yo hago, tu haces",
+    "I bring, you bring": "yo traigo, tu traes",
+    "I fall, you fall": "yo caigo, tu caes",
+    "I put, you put": "yo pongo, tu pones",
+    "I go out, you go out": "yo salgo, tu sales",
+    "I see, we see": "yo veo, nosotros vemos",
+    "I know, we know": "yo sé, nosotros sabemos",
+    "I give, we give": "yo doy, nosotros damos",
+    "I do, we do": "yo hago, nosotros hacemos",
+    "I bring, we bring": "yo traigo, nosotros traemos",
+    "I fall, we fall": "yo caigo, nosotros caemos",
+    "I put, we put": "yo pongo, nosotros ponemos",
+    "I go out, we go out": "yo salgo, nosotros salimos"
+  }
 }

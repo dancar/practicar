@@ -1,12 +1,15 @@
 {
-  "10": "diez",
-  "20": "veinte",
-  "30": "treinta",
-  "40": "cuarenta",
-  "50": "cincuenta",
-  "60": "sesenta",
-  "70": "setenta",
-  "80": "ochenta",
-  "90": "noventa",
-  "100": "cien"
+  "language": "es",
+  "questions": {
+    "10": "diez",
+    "20": "veinte",
+    "30": "treinta",
+    "40": "cuarenta",
+    "50": "cincuenta",
+    "60": "sesenta",
+    "70": "setenta",
+    "80": "ochenta",
+    "90": "noventa",
+    "100": "cien"
+  }
 }
