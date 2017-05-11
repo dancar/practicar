@@ -1,6 +1,32 @@
 {
   "language": "de",
   "questions": {
-    "The woman": "die frau"
+    "The woman": "die frau",
+    "The man": "der Mann",
+    "A woman": "eine frau",
+    "A man": "ein Mann",
+    "The boy": "der Junge",
+    "A child": "ein kind",
+    "He is drinking": "er trinkt",
+    "He drinks": "er trinkt",
+    "A girl": "eine Ma^dchen",
+    "She is a woman": "sie ist eine Frau",
+    "I am a man": "Ich bin ein Mann",
+    "It is bread": "Es ist Brot",
+    "You are a girl": "Du bist ein ma^dchen",
+    "I am a boy": "Ich bin ein Junge",
+    "She is a girl": "Sie ist ein Madchen",
+    "You are a woman and I am a man": "Du bist eine Frau und ich bin ein Mann",
+    "He drinks": "Er trinkt",
+    "Welcome": "Willkommen",
+    "Good evening": "guten abend",
+    "Indeed": "genau",
+    "Sorry": "entschuldigung",
+    "You are welcome": "gern geschehen",
+    "Alright": "in ordnung",
+    "how is it going": "wie geht's",
+    "no idea": "keine ahnung",
+    "all is clear": "alles klar",
+    "i am good": "mir geht's gut"
   }
 }

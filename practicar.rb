@@ -1,6 +1,9 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
+#TODO:
+# Better way to deal with accents?
+
 require 'json'
 class Practicar
   DEFAULT_QUESTIONS_FILE = "questions.json"

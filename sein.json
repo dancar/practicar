@@ -1,0 +1,14 @@
+{
+  "language": "de",
+  "questions": {
+    "I am": "ich bin",
+    "you are (singular informal)": "du bist",
+    "he is": "er ist",
+    "she is": "sie ist",
+    "it is": "es ist",
+    "we are": "wir sind",
+    "you are (plural informal)": "ihr seid",
+    "they are": "sie sind",
+    "you are (formal)": "sie sind"
+  }
+}
