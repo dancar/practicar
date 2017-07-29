@@ -52,13 +52,12 @@ class Practicar
 
     @initial_step = @stats["step"]
     @initial_points = @stats["points"]
-    @available_voices = %x(say -v ?| grep #{@language}_).lines.map{|l| l.split(" ").first}
+    @available_voices = get_voices()
 
   end
 
   def run
     while true do
-      input = nil
       next_question!()
       question_stats = @stats["question_stats"][@current_question]
       is_correct = ask_current_question()
@@ -84,6 +83,16 @@ class Practicar
   end
 
   private
+
+  # Returns a hash of language_code -> array voice names
+  def get_voices
+    %x(say -v ?).lines.map{|l| l.split(" ")}.reduce({}) do |ans, item|
+      language = item[1][0..1]
+      ans[language] ||= []
+      ans[language] << item[0]
+      ans
+    end
+  end
 
   def print_question_stat(name, value, effective_value = nil)
     return unless ENV["SHOW_STATS"]
@@ -135,6 +144,7 @@ class Practicar
 
   def ask_current_question()
     puts @current_question + ":"
+    say(@current_question, "en")
     user_input = STDIN.gets()
     goodbye() if user_input.nil? # Exiting by entering CTRL + D
     user_input.chomp!.downcase!
@@ -159,7 +169,7 @@ class Practicar
       full_answer.gsub!(/\([^)]+\)/,"")
     end
 
-    say(full_answer)
+    say(full_answer, @language)
     is_correct
   end
 
@@ -174,13 +184,13 @@ class Practicar
     print "Points made: #{points_made} "
     puts "☆ " * points_made
 
-    say STRINGS[@language][:points] % points_made
+    say(STRINGS[@language][:points] % points_made, @language)
     puts "\nGoodbye.\n"
     exit 0
   end
 
-  def say(word)
-    system %(say -v #{@available_voices.sample} "#{word}" &)
+  def say(word, language)
+    system %(say -v #{@available_voices[language].sample} "#{word}" )
   end
 
   def next_question!()
@@ -194,7 +204,6 @@ class Practicar
   end
 
   def smart_next_question!()
-    current_step = @stats["step"]
     possible_thresholds = @stats["question_stats"].values.map {|q| calc_question_cutoff(q)}
 
     @min_threshold = possible_thresholds.min
