@@ -5,8 +5,9 @@
 # Better way to deal with accents?
 
 require 'json'
+require './speech.rb'
+
 class Practicar
-  DISABLED_EN_VOICES = ["Albert", "Fred", "Bubbles", "Bahh", "Bells", "Boing", "Deranged", "Hysterical", "Junior", "Princess", "Ralph", "Samantha", "Tessa", "Zarvox", "Cellos", "Whisper"]
   DEFAULT_QUESTIONS_FILE = "questions.json"
   AVAILABLE_MODES = [:smart, :random]
   ANSWER_PLACEHOLDER = /\(\?\)/ # answers for questions containing "(?)" (without quotes) will be voiced as the questions with (?) replaced by the answer
@@ -53,7 +54,7 @@ class Practicar
 
     @initial_step = @stats["step"]
     @initial_points = @stats["points"]
-    @available_voices = get_voices()
+    @speech = Speech.new()
 
   end
 
@@ -86,17 +87,6 @@ class Practicar
   private
 
   # Returns a hash of language_code -> array voice names
-  def get_voices
-    voices_map = %x(say -v ?).lines.map{|l| l.split(" ")}.reduce({}) do |ans, item|
-      language = item[1][0..1]
-      ans[language] ||= []
-      ans[language] << item[0]
-      ans
-    end
-    voices_map["en"] = voices_map["en"] - DISABLED_EN_VOICES
-    voices_map
-  end
-
   def print_question_stat(name, value, effective_value = nil)
     return unless ENV["SHOW_STATS"]
     str = sprintf("▹ %30s: %s", name, value.to_s)
@@ -193,8 +183,7 @@ class Practicar
   end
 
   def say(word, language)
-    voice = @available_voices[language].sample
-    system %(say -v #{voice} "#{word}" )
+    @speech.say(word, language)
   end
 
   def next_question!()
