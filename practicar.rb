@@ -6,6 +6,7 @@
 
 require 'json'
 class Practicar
+  DISABLED_EN_VOICES = ["Albert", "Fred", "Bubbles", "Bahh", "Bells", "Boing", "Deranged", "Hysterical", "Junior", "Princess", "Ralph", "Samantha", "Tessa", "Zarvox", "Cellos", "Whisper"]
   DEFAULT_QUESTIONS_FILE = "questions.json"
   AVAILABLE_MODES = [:smart, :random]
   ANSWER_PLACEHOLDER = /\(\?\)/ # answers for questions containing "(?)" (without quotes) will be voiced as the questions with (?) replaced by the answer
@@ -86,12 +87,14 @@ class Practicar
 
   # Returns a hash of language_code -> array voice names
   def get_voices
-    %x(say -v ?).lines.map{|l| l.split(" ")}.reduce({}) do |ans, item|
+    voices_map = %x(say -v ?).lines.map{|l| l.split(" ")}.reduce({}) do |ans, item|
       language = item[1][0..1]
       ans[language] ||= []
       ans[language] << item[0]
       ans
     end
+    voices_map["en"] = voices_map["en"] - DISABLED_EN_VOICES
+    voices_map
   end
 
   def print_question_stat(name, value, effective_value = nil)
@@ -148,7 +151,7 @@ class Practicar
     user_input = STDIN.gets()
     goodbye() if user_input.nil? # Exiting by entering CTRL + D
     user_input.chomp!.downcase!
-    if user_input == convert_accents(@current_answer) # Perfect answer
+    if user_input == @current_answer or user_input == convert_accents(@current_answer) # Perfect answer
 
       is_correct = true
       puts "CORRECT!"
@@ -190,7 +193,8 @@ class Practicar
   end
 
   def say(word, language)
-    system %(say -v #{@available_voices[language].sample} "#{word}" )
+    voice = @available_voices[language].sample
+    system %(say -v #{voice} "#{word}" )
   end
 
   def next_question!()

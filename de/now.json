@@ -1,6 +1,8 @@
 {
   "language": "de",
   "questions": {
-    "alright": "in ordnung"
+    "alright": "in ordnung",
+    "goodbye": "auf wiedersehen",
+    "exactly": "genau"
   }
 }
