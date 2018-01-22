@@ -15,6 +15,7 @@ class Speech
     voices_map
   end
   def say(word, language)
+    return if ENV["NOSPEAK"]
     voice = @available_voices[language].sample
     system %(say -v #{voice} "#{word}" )
   end
